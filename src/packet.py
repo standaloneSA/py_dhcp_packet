@@ -43,8 +43,17 @@ https://github.com/tmeiczin/pydhcp/
 
 from ctypes import Union
 import typing
+import struct
+import socket
+
+big_format = ""
 
 class packet:
+
+    class types:
+        BOOTREQUEST=1
+        BOOTREPLY=2
+
     def __init__(
         self,
         op = typing.Optional[int]=None,
@@ -95,12 +104,39 @@ class packet:
                     "byteval": option.getattr("byteval"),
                     })
 
+        def to_bytes(self):
+            # See the diagram of the packet at the top as well as 
+            # the struct byte packing formats here:
+            # https://docs.python.org/3/library/struct.html
+            ret_bytes = struct.pack('!bbbb', self.op, self.htype, self.hlen, self.hops)
+            ret_bytes += struct.pack('!i', self.xid)
+            ret_bytes += struct.pack('!HH', self.secs, self.flags)
+            ret_bytes += struct.pack('!i', self.ciaddr)
+            ret_bytes += struct.pack('!i', self.yiaddr)
+            ret_bytes += struct.pack('!i', self.siaddr)
+            ret_bytes += struct.pack('!i', self.giaddr)
+            ret_bytes += struct.pack('!16s', self.chaddr)
+            ret_bytes += struct.pack('!64s', self.sname.encode('utf-8'))
+            ret_bytes += struct.pack('!128s', self.file.encode('utf-8'))
 
-class offer(packet):
+            # magic cookie from the RFC
+            ret_bytes += struct.pack('!BBBB', 99, 130, 83, 99) 
+
+            for option in self.options:
+                pass
+            return ret_bytes
+
+class DHCPREQUEST(packet):
     pass
 
-class ACK(packet):
+class DHCPOFFER(packet):
     pass
 
-class NACK(packet):
+class DHCPACK(packet):
+    pass
+
+class DHCPNACK(packet):
+    pass
+
+class DHCPDISCOVER(packet):
     pass
