@@ -46,6 +46,7 @@ from ctypes import Union
 import typing
 import struct
 import socket
+import random
 
 big_format = ""
 
@@ -137,7 +138,22 @@ class packet:
         return ret_bytes
 
 class DHCPREQUEST(packet):
-    pass
+    def __init__(self, client_mac):
+        self.super.__init__(
+            op = 1,
+            htype = 1,
+            hlen = 6,
+            hops = 0,
+            xid = random.randbytes(4),
+            secs = 0,
+            ciaddr = 0,
+            yiaddr = 0,
+            siaddr = 0,
+            giaddr = 0,
+            chaddr = client_mac,
+            sname = 0,
+            file = 0        
+        )
 
 class DHCPOFFER(packet):
     pass
